@@ -59,7 +59,7 @@ export default function ProfilePage() {
   };
 
   const loadSalary = async () => {
-    if (!employeeId || !isAdmin) return;
+    if (!employeeId || (!isAdmin && !isSelf)) return;
     try {
       setSalaryLoading(true);
       const res = await getSalary(employeeId);
