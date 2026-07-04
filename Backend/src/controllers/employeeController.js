@@ -258,9 +258,18 @@ const updateEmployeeProfile = async (req, res) => {
       return res.status(403).json({ success: false, error: 'Not authorized to update this profile' });
     }
 
-    // Handle profile picture upload
+    // Handle profile picture upload (convert to Base64 and save in MongoDB, not locally)
     if (req.file) {
-      employee.profilePicture = `/uploads/${req.file.filename}`;
+      const fs = require('fs');
+      try {
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const base64Image = fileBuffer.toString('base64');
+        employee.profilePicture = `data:${req.file.mimetype};base64,${base64Image}`;
+        // Clean up temporary local file
+        fs.unlinkSync(req.file.path);
+      } catch (fileErr) {
+        console.error('Error processing upload image file:', fileErr);
+      }
     }
 
     // Extract fields
