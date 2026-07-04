@@ -69,6 +69,11 @@ const updateSalary = async (req, res) => {
   try {
     const targetEmployeeId = req.params.employeeId;
 
+    // Restrict to Admin/HR only
+    if (!['Admin', 'HR'].includes(req.user.role)) {
+      return res.status(403).json({ success: false, error: 'Access denied: Only HR or Admin can change salary settings' });
+    }
+
     // Resolve employee by _id or employee_id
     const isObjectId = targetEmployeeId.match(/^[0-9a-fA-F]{24}$/);
     const query = isObjectId
