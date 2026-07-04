@@ -20,6 +20,10 @@ const generateEmployeeId = async (companyName, employeeName, companyId) => {
   }
   compInitials = compInitials.toUpperCase().padEnd(2, 'X');
 
+  if (companyName.toUpperCase().startsWith('ODOO')) {
+    compInitials = 'OI';
+  }
+
   // 2. Get Employee name initials (first 2 of first name + first 2 of last name)
   const nameParts = employeeName.trim().split(/\s+/);
   let nameInitials = '';

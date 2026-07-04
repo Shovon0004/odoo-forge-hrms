@@ -182,7 +182,7 @@ export default function ProfilePage() {
       if (res.data && res.data.success) {
         alert('Profile picture updated successfully!');
         const newAvatarPath = res.data.data.profilePicture 
-          ? `http://localhost:5000${res.data.data.profilePicture}` 
+          ? `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}${res.data.data.profilePicture}` 
           : undefined;
         if (isSelf && newAvatarPath) {
           updateUser({ avatar: newAvatarPath });
@@ -302,7 +302,7 @@ export default function ProfilePage() {
   if (isAdmin || isSelf) tabs.push('Salary Info');
 
   const avatarUrl = employee.profilePicture 
-    ? `http://localhost:5000${employee.profilePicture}` 
+    ? `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}${employee.profilePicture}` 
     : `/default_avatar.png`;
 
   return (

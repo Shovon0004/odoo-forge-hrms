@@ -239,7 +239,7 @@ export default function TimeOffPage() {
                             <td className="px-6 py-4">
                               {req.attachment_url ? (
                                 <a 
-                                  href={`http://localhost:5000${req.attachment_url}`} 
+                                  href={`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}${req.attachment_url}`} 
                                   target="_blank" 
                                   rel="noopener noreferrer" 
                                   className="text-pink-600 hover:text-pink-700 font-medium inline-flex items-center space-x-1 underline"

@@ -28,7 +28,7 @@ export default function LoginPage() {
           email: employee.email,
           role: employee.role,
           department: employee.department,
-          avatar: employee.profilePicture ? `http://localhost:5000${employee.profilePicture}` : undefined,
+          avatar: employee.profilePicture ? `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}${employee.profilePicture}` : undefined,
         }, token);
         
         router.push('/dashboard');
