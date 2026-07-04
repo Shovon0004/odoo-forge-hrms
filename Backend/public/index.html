@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Odoo HRMS - API Documentation & Tester</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --accent: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar - Endpoint Navigation */
+    .sidebar {
+      width: 320px;
+      background-color: #0b0f19;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-header p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .endpoint-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .module-group {
+      margin-bottom: 24px;
+    }
+
+    .module-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 600;
+      padding-left: 8px;
+    }
+
+    .endpoint-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 6px;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+    }
+
+    .endpoint-item:hover {
+      background-color: rgba(255, 255, 255, 0.03);
+      color: var(--text-main);
+    }
+
+    .endpoint-item.active {
+      background-color: rgba(139, 92, 246, 0.15);
+      border-color: rgba(139, 92, 246, 0.3);
+      color: var(--text-main);
+    }
+
+    .method-badge {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 8px;
+      min-width: 55px;
+      text-align: center;
+    }
+
+    .method-GET { background-color: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .method-POST { background-color: rgba(6, 182, 212, 0.15); color: var(--accent); }
+    .method-PUT { background-color: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .method-DELETE { background-color: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+    /* Main Content - Tester Workspace */
+    .workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: var(--bg-dark);
+    }
+
+    /* Top Bar - Auth Config */
+    .topbar {
+      padding: 16px 24px;
+      background-color: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .auth-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 60%;
+    }
+
+    .auth-container label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .auth-input {
+      flex: 1;
+      background-color: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text-main);
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8rem;
+    }
+
+    .auth-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .clear-btn {
+      background-color: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .clear-btn:hover {
+      background-color: var(--danger);
+      color: #fff;
+    }
+
+    /* Workspace Content Split */
+    .workspace-split {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .panel-left, .panel-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .panel-left {
+      border-right: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* Forms & Inputs */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      width: 100%;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .json-editor {
+      width: 100%;
+      height: 180px;
+      background-color: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #38bdf8;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      padding: 12px;
+      resize: vertical;
+    }
+
+    .json-editor:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .action-row {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-send {
+      flex: 1;
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-send:hover {
+      opacity: 0.9;
+    }
+
+    /* Response Console Panel */
+    .response-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .response-status {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .status-success { background-color: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .status-error { background-color: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+    .console-box {
+      flex: 1;
+      background-color: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #38bdf8;
+    }
+
+    .console-error {
+      color: var(--danger);
+    }
+
+    .curl-container {
+      margin-top: 16px;
+    }
+
+    .curl-container h4 {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .curl-box {
+      background-color: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: pre-wrap;
+      position: relative;
+    }
+
+    .btn-copy {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    .btn-copy:hover {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>HRMS API client</h1>
+      <p>Interactive Documentation & Tester</p>
+    </div>
+    
+    <div class="endpoint-list">
+      
+      <!-- AUTH MODULE -->
+      <div class="module-group">
+        <div class="module-title">Authentication & Org</div>
+        <div class="endpoint-item" onclick="selectEndpoint('signup-org')">
+          <span class="method-badge method-POST">POST</span>
+          <span>Register Org & Admin</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('signup-employee')">
+          <span class="method-badge method-POST">POST</span>
+          <span>Activate Account</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('signin')">
+          <span class="method-badge method-POST">POST</span>
+          <span>Sign In</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('verify')">
+          <span class="method-badge method-GET">GET</span>
+          <span>Verify Email Link</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('change-password')">
+          <span class="method-badge method-PUT">PUT</span>
+          <span>Change Password</span>
+        </div>
+      </div>
+
+      <!-- EMPLOYEES MODULE -->
+      <div class="module-group">
+        <div class="module-title">Employee Management</div>
+        <div class="endpoint-item" onclick="selectEndpoint('onboard')">
+          <span class="method-badge method-POST">POST</span>
+          <span>Onboard Employee</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('get-employees')">
+          <span class="method-badge method-GET">GET</span>
+          <span>List Directory</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('get-profile')">
+          <span class="method-badge method-GET">GET</span>
+          <span>Get Profile Details</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('update-profile')">
+          <span class="method-badge method-PUT">PUT</span>
+          <span>Update Profile Details</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('add-skill')">
+          <span class="method-badge method-POST">POST</span>
+          <span>Add Skill</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('delete-skill')">
+          <span class="method-badge method-DELETE">DEL</span>
+          <span>Remove Skill</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('add-cert')">
+          <span class="method-badge method-POST">POST</span>
+          <span>Add Certification</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('delete-cert')">
+          <span class="method-badge method-DELETE">DEL</span>
+          <span>Remove Certification</span>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE MODULE -->
+      <div class="module-group">
+        <div class="module-title">Attendance</div>
+        <div class="endpoint-item" onclick="selectEndpoint('check-in')">
+          <span class="method-badge method-POST">POST</span>
+          <span>Check-in</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('check-out')">
+          <span class="method-badge method-POST">POST</span>
+          <span>Check-out</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('my-attendance')">
+          <span class="method-badge method-GET">GET</span>
+          <span>My Attendance Logs</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('all-attendance')">
+          <span class="method-badge method-GET">GET</span>
+          <span>All Attendance logs</span>
+        </div>
+      </div>
+
+      <!-- TIME OFF MODULE -->
+      <div class="module-group">
+        <div class="module-title">Time Off & Leaves</div>
+        <div class="endpoint-item" onclick="selectEndpoint('get-allocations')">
+          <span class="method-badge method-GET">GET</span>
+          <span>Leave Balances</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('submit-leave')">
+          <span class="method-badge method-POST">POST</span>
+          <span>Submit Leave Request</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('get-leaves')">
+          <span class="method-badge method-GET">GET</span>
+          <span>Leave Request History</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('review-leave')">
+          <span class="method-badge method-PUT">PUT</span>
+          <span>Approve/Reject Request</span>
+        </div>
+      </div>
+
+      <!-- SALARY MODULE -->
+      <div class="module-group">
+        <div class="module-title">Salary & Payroll</div>
+        <div class="endpoint-item" onclick="selectEndpoint('get-salary')">
+          <span class="method-badge method-GET">GET</span>
+          <span>View Salary Structure</span>
+        </div>
+        <div class="endpoint-item" onclick="selectEndpoint('update-salary')">
+          <span class="method-badge method-PUT">PUT</span>
+          <span>Update Salary Structure</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Workspace -->
+  <div class="workspace">
+    
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="auth-container">
+        <label for="jwt-token">Authorization Header:</label>
+        <input type="text" id="jwt-token" class="auth-input" placeholder="Bearer eyJhbGciOi..." oninput="saveToken(this.value)">
+      </div>
+      <button class="clear-btn" onclick="clearToken()">Clear Auth Token</button>
+    </div>
+
+    <!-- Workspace Split -->
+    <div class="workspace-split">
+      
+      <!-- Panel Left: Requests -->
+      <div class="panel-left">
+        <h2 class="panel-title" id="active-title">Select an Endpoint</h2>
+        <p class="panel-desc" id="active-desc">Click on an endpoint in the sidebar to start configuring and testing the request.</p>
+
+        <form id="api-form" style="display: none;" onsubmit="handleFormSubmit(event)">
+          <!-- Dynamic URL Path params -->
+          <div id="path-params-section"></div>
+
+          <!-- Dynamic Query params -->
+          <div id="query-params-section"></div>
+
+          <!-- Dynamic Body Parameters -->
+          <div id="body-section">
+            <div class="form-group" id="json-body-group">
+              <label for="request-body">Request Body (JSON):</label>
+              <textarea id="request-body" class="json-editor"></textarea>
+            </div>
+            
+            <!-- File Upload Section (for updates/attachments) -->
+            <div class="form-group" id="file-group" style="display: none;">
+              <label for="file-upload" id="file-label">File Attachment:</label>
+              <input type="file" id="file-upload" class="form-control">
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button type="submit" class="btn-send">Send Request</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Panel Right: Responses -->
+      <div class="panel-right">
+        <div class="response-meta">
+          <h3 style="font-size: 1rem; font-weight: 600;">Response Window</h3>
+          <span id="response-status-badge" class="response-status" style="display: none;">STATUS</span>
+        </div>
+        <div id="response-console" class="console-box">No request executed yet. Send a request to view results here.</div>
+
+        <!-- Generated cURL Command -->
+        <div class="curl-container" id="curl-container" style="display: none;">
+          <h4>Equivalent Postman / cURL Command</h4>
+          <div class="curl-box">
+            <span id="curl-code">curl -X GET http://...</span>
+            <button class="btn-copy" onclick="copyCurl()">Copy</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // Global Endpoints Config mapping
+    const endpoints = {
+      'signup-org': {
+        title: 'Register Organization & Admin',
+        desc: 'Registers a new Organization/Company along with the initial Admin user account. Returns employee credentials and a JWT token.',
+        method: 'POST',
+        url: '/api/v1/auth/signup-org',
+        body: {
+          company_name: 'Hackathon Inc',
+          phone: '9876543210',
+          name: 'Super Admin',
+          email: 'admin@hackathon.com',
+          password: 'Password@123'
+        }
+      },
+      'signup-employee': {
+        title: 'Activate Employee Account',
+        desc: 'Enables an onboarded employee to activate their profile, choose a password, and trigger verification.',
+        method: 'POST',
+        url: '/api/v1/auth/signup-employee',
+        body: {
+          employee_id: 'HCOJODO20260002',
+          email: 'johndoe@hackathon.com',
+          password: 'Password@123',
+          role: 'Employee'
+        }
+      },
+      'signin': {
+        title: 'Sign In',
+        desc: 'Logs in an employee or admin using their Employee ID or Email, and secure password.',
+        method: 'POST',
+        url: '/api/v1/auth/signin',
+        body: {
+          login_id_or_email: 'admin@hackathon.com',
+          password: 'Password@123'
+        }
+      },
+      'verify': {
+        title: 'Verify Email Link',
+        desc: 'Checks the email verification token to mark the user as verified. (Simulates clicking the email verification link).',
+        method: 'GET',
+        url: '/api/v1/auth/verify/:token',
+        pathParams: ['token']
+      },
+      'change-password': {
+        title: 'Change Password',
+        desc: 'Allows authenticated users to change their password.',
+        method: 'PUT',
+        url: '/api/v1/auth/change-password',
+        body: {
+          oldPassword: 'Password@123',
+          newPassword: 'NewPassword@123'
+        }
+      },
+      'onboard': {
+        title: 'Onboard New Employee (Admin/HR)',
+        desc: 'Onboards a new employee into the company directory. Marks them as unactivated and sends activation email.',
+        method: 'POST',
+        url: '/api/v1/employees',
+        body: {
+          name: 'John Doe',
+          email: 'johndoe@hackathon.com',
+          mobile: '9876543210',
+          department: 'Engineering',
+          location: 'Bangalore',
+          role: 'Employee'
+        }
+      },
+      'get-employees': {
+        title: 'List Employee Directory',
+        desc: 'Retrieves the company directory list. Filterable by name search, department, role, or location.',
+        method: 'GET',
+        url: '/api/v1/employees',
+        queryParams: ['search', 'department', 'role']
+      },
+      'get-profile': {
+        title: 'Get Profile Details',
+        desc: 'Retrieves detailed employee profile info (skills, resume detail, status).',
+        method: 'GET',
+        url: '/api/v1/employees/:id',
+        pathParams: ['id']
+      },
+      'update-profile': {
+        title: 'Update Profile Details',
+        desc: 'Updates the employee profile. Supports uploading a profile picture file (Multer field: profilePicture) and string values.',
+        method: 'PUT',
+        url: '/api/v1/employees/:id',
+        pathParams: ['id'],
+        fileField: 'profilePicture',
+        body: {
+          mobile: '9999888877',
+          location: 'Remote',
+          about: 'Experienced developer',
+          hobbies: 'Chess, Coding',
+          interests: 'Web3, Machine Learning'
+        }
+      },
+      'add-skill': {
+        title: 'Add Skill to Profile',
+        desc: 'Adds a skill name and proficiency level to an employee profile.',
+        method: 'POST',
+        url: '/api/v1/employees/:id/skills',
+        pathParams: ['id'],
+        body: {
+          name: 'JavaScript',
+          proficiency: 'Advanced'
+        }
+      },
+      'delete-skill': {
+        title: 'Remove Skill from Profile',
+        desc: 'Deletes a specific skill from the employee profile.',
+        method: 'DELETE',
+        url: '/api/v1/employees/:id/skills/:skillName',
+        pathParams: ['id', 'skillName']
+      },
+      'add-cert': {
+        title: 'Add Certification',
+        desc: 'Appends a certification structure to the profile.',
+        method: 'POST',
+        url: '/api/v1/employees/:id/certifications',
+        pathParams: ['id'],
+        body: {
+          name: 'Mongoose Certified Developer',
+          issuedBy: 'MongoDB Inc',
+          issueDate: '2026-07-04'
+        }
+      },
+      'delete-cert': {
+        title: 'Remove Certification',
+        desc: 'Removes a specific certification by name from the profile.',
+        method: 'DELETE',
+        url: '/api/v1/employees/:id/certifications/:certName',
+        pathParams: ['id', 'certName']
+      },
+      'check-in': {
+        title: 'Check-in (Employee)',
+        desc: 'Registers daily check-in. Updates employee status to Present.',
+        method: 'POST',
+        url: '/api/v1/attendance/check-in',
+        body: {}
+      },
+      'check-out': {
+        title: 'Check-out (Employee)',
+        desc: 'Registers daily check-out. Automatically calculates gross and overtime shift hours, taking break time deductions into account.',
+        method: 'POST',
+        url: '/api/v1/attendance/check-out',
+        body: {}
+      },
+      'my-attendance': {
+        title: 'My Attendance Logs',
+        desc: 'Retrieves check-in logs for the logged-in employee. Optional filtering by month (YYYY-MM).',
+        method: 'GET',
+        url: '/api/v1/attendance/my-attendance',
+        queryParams: ['month']
+      },
+      'all-attendance': {
+        title: 'All Attendance Logs (Admin/HR)',
+        desc: 'Gets logs of all employees in the organization. Filterable by date (YYYY-MM-DD), month, or employee_id.',
+        method: 'GET',
+        url: '/api/v1/attendance/all',
+        queryParams: ['date', 'month', 'employee_id']
+      },
+      'get-allocations': {
+        title: 'Leave Balances',
+        desc: 'Retrieves the remaining Paid and Sick Leave allocations.',
+        method: 'GET',
+        url: '/api/v1/time-off/allocations'
+      },
+      'submit-leave': {
+        title: 'Submit Leave Request',
+        desc: 'Submits a leave request. Sick Leave requests require attaching a medical certificate (Multer field: attachment).',
+        method: 'POST',
+        url: '/api/v1/time-off/requests',
+        fileField: 'attachment',
+        body: {
+          time_off_type: 'Paid Time off',
+          start_date: '2026-07-06',
+          end_date: '2026-07-07',
+          remarks: 'Going to family event'
+        }
+      },
+      'get-leaves': {
+        title: 'Leave Requests History',
+        desc: 'Gets history list. Employees see their own list, while Admin/HR sees all requests in their organization.',
+        method: 'GET',
+        url: '/api/v1/time-off/requests',
+        queryParams: ['status', 'employee_id']
+      },
+      'review-leave': {
+        title: 'Approve / Reject Leave (Admin/HR)',
+        desc: 'Approves or rejects a pending leave request. Approving deducts allocations.',
+        method: 'PUT',
+        url: '/api/v1/time-off/requests/:id/status',
+        pathParams: ['id'],
+        body: {
+          status: 'Approved',
+          comments: 'Approved. Enjoy!'
+        }
+      },
+      'get-salary': {
+        title: 'View Salary Structure',
+        desc: 'Fetches structural wage details for an employee. Employees are read-only, Admin/HR manages.',
+        method: 'GET',
+        url: '/api/v1/salary/:employeeId',
+        pathParams: ['employeeId']
+      },
+      'update-salary': {
+        title: 'Update Salary Configurations (Admin/HR)',
+        desc: 'Updates salary configuration rules (monthly wage, work days, break hours). Recalculates basic salary, HRA, PF deductions, tax, etc.',
+        method: 'PUT',
+        url: '/api/v1/salary/:employeeId',
+        pathParams: ['employeeId'],
+        body: {
+          monthly_wage: 60000,
+          working_days_per_week: 5,
+          break_time_hours: 1
+        }
+      }
+    };
+
+    let selectedKey = null;
+
+    // Load initial token if any
+    document.addEventListener("DOMContentLoaded", () => {
+      const saved = localStorage.getItem("hrms_token");
+      if (saved) {
+        document.getElementById("jwt-token").value = saved;
+      }
+    });
+
+    function saveToken(val) {
+      localStorage.setItem("hrms_token", val);
+    }
+
+    function clearToken() {
+      localStorage.removeItem("hrms_token");
+      document.getElementById("jwt-token").value = "";
+    }
+
+    function selectEndpoint(key) {
+      selectedKey = key;
+      const config = endpoints[key];
+
+      // Highlight active item
+      document.querySelectorAll('.endpoint-item').forEach(el => el.classList.remove('active'));
+      const activeEl = Array.from(document.querySelectorAll('.endpoint-item')).find(el => 
+        el.getAttribute('onclick').includes(`'${key}'`)
+      );
+      if (activeEl) activeEl.classList.add('active');
+
+      // Populate text details
+      document.getElementById('active-title').innerHTML = `<span class="method-badge method-${config.method}">${config.method}</span> ${config.title}`;
+      document.getElementById('active-desc').textContent = config.desc;
+
+      const form = document.getElementById('api-form');
+      form.style.display = 'block';
+
+      // Clear previous sections
+      const pathSec = document.getElementById('path-params-section');
+      const querySec = document.getElementById('query-params-section');
+      pathSec.innerHTML = '';
+      querySec.innerHTML = '';
+
+      // Build Path Params inputs
+      if (config.pathParams) {
+        config.pathParams.forEach(param => {
+          pathSec.innerHTML += `
+            <div class="form-group">
+              <label for="path_${param}">URL Parameter [:${param}]:</label>
+              <input type="text" id="path_${param}" class="form-control" placeholder="Enter value for :${param}" required>
+            </div>
+          `;
+        });
+      }
+
+      // Build Query Params inputs
+      if (config.queryParams) {
+        config.queryParams.forEach(query => {
+          querySec.innerHTML += `
+            <div class="form-group">
+              <label for="query_${query}">Query Parameter [?${query}=]:</label>
+              <input type="text" id="query_${query}" class="form-control" placeholder="Enter value for ${query}">
+            </div>
+          `;
+        });
+      }
+
+      // Build Body editor
+      const jsonBodyGroup = document.getElementById('json-body-group');
+      if (config.method === 'GET' || config.method === 'DELETE') {
+        jsonBodyGroup.style.display = 'none';
+      } else {
+        jsonBodyGroup.style.display = 'block';
+        document.getElementById('request-body').value = JSON.stringify(config.body, null, 2);
+      }
+
+      // Build File Upload Section
+      const fileGroup = document.getElementById('file-group');
+      const fileUpload = document.getElementById('file-upload');
+      fileUpload.value = ''; // Reset file input
+      if (config.fileField) {
+        fileGroup.style.display = 'block';
+        document.getElementById('file-label').textContent = `Upload File (Multer field: "${config.fileField}"):`;
+      } else {
+        fileGroup.style.display = 'none';
+      }
+
+      updateCurlPreview();
+    }
+
+    // Dynamic curl generator
+    function updateCurlPreview() {
+      if (!selectedKey) return;
+      const config = endpoints[selectedKey];
+      
+      let finalUrl = config.url;
+
+      // Replace path parameters
+      if (config.pathParams) {
+        config.pathParams.forEach(param => {
+          const inputEl = document.getElementById(`path_${param}`);
+          const val = inputEl && inputEl.value ? inputEl.value : `:${param}`;
+          finalUrl = finalUrl.replace(`:${param}`, val);
+        });
+      }
+
+      // Add query parameters
+      let queries = [];
+      if (config.queryParams) {
+        config.queryParams.forEach(query => {
+          const inputEl = document.getElementById(`query_${query}`);
+          if (inputEl && inputEl.value) {
+            queries.push(`${query}=${encodeURIComponent(inputEl.value)}`);
+          }
+        });
+      }
+      if (queries.length > 0) {
+        finalUrl += '?' + queries.join('&');
+      }
+
+      const host = window.location.origin;
+      const fullUrl = `${host}${finalUrl}`;
+
+      const token = document.getElementById('jwt-token').value;
+      const authHeader = token ? ` -H "Authorization: Bearer ${token.replace('Bearer ', '')}"` : '';
+
+      let bodyData = '';
+      if (config.method !== 'GET' && config.method !== 'DELETE') {
+        if (config.fileField) {
+          bodyData = ` -F "${config.fileField}=@/path/to/file"`;
+          // Append JSON fields to formData too
+          const bodyVal = document.getElementById('request-body').value;
+          try {
+            const parsed = JSON.parse(bodyVal);
+            Object.keys(parsed).forEach(k => {
+              bodyData += ` -F "${k}=${parsed[k]}"`;
+            });
+          } catch(e) {}
+        } else {
+          const bodyVal = document.getElementById('request-body').value.replace(/"/g, '\\"').replace(/\n/g, '');
+          bodyData = ` -H "Content-Type: application/json" -d "${bodyVal}"`;
+        }
+      }
+
+      const curlCmd = `curl -X ${config.method} "${fullUrl}"${authHeader}${bodyData}`;
+      document.getElementById('curl-code').textContent = curlCmd;
+      document.getElementById('curl-container').style.display = 'block';
+    }
+
+    // Monitor input changes to refresh curl preview
+    document.addEventListener('input', (e) => {
+      if (e.target.id && (e.target.id.startsWith('path_') || e.target.id.startsWith('query_') || e.target.id === 'request-body' || e.target.id === 'jwt-token')) {
+        updateCurlPreview();
+      }
+    });
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      if (!selectedKey) return;
+      const config = endpoints[selectedKey];
+
+      // Reset response window
+      const consoleEl = document.getElementById('response-console');
+      const statusBadge = document.getElementById('response-status-badge');
+      consoleEl.className = 'console-box';
+      consoleEl.textContent = 'Executing request...';
+      statusBadge.style.display = 'none';
+
+      // 1. Construct target URL path
+      let finalUrl = config.url;
+      if (config.pathParams) {
+        for (const param of config.pathParams) {
+          const val = document.getElementById(`path_${param}`).value;
+          finalUrl = finalUrl.replace(`:${param}`, encodeURIComponent(val));
+        }
+      }
+
+      // 2. Append Query string
+      let queries = [];
+      if (config.queryParams) {
+        config.queryParams.forEach(query => {
+          const val = document.getElementById(`query_${query}`).value;
+          if (val) {
+            queries.push(`${query}=${encodeURIComponent(val)}`);
+          }
+        });
+      }
+      if (queries.length > 0) {
+        finalUrl += '?' + queries.join('&');
+      }
+
+      // 3. Prepare headers
+      const headers = {};
+      const token = document.getElementById('jwt-token').value;
+      if (token) {
+        headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      }
+
+      // 4. Construct request settings
+      const options = {
+        method: config.method,
+        headers: headers
+      };
+
+      // 5. Handle Body (JSON vs Multipart FormData)
+      if (config.method !== 'GET' && config.method !== 'DELETE') {
+        const fileInput = document.getElementById('file-upload');
+        
+        if (config.fileField && fileInput.files.length > 0) {
+          // Send as FormData
+          const formData = new FormData();
+          formData.append(config.fileField, fileInput.files[0]);
+
+          // Merge text body parameters
+          const bodyVal = document.getElementById('request-body').value;
+          try {
+            const parsed = JSON.parse(bodyVal);
+            Object.keys(parsed).forEach(k => {
+              formData.append(k, parsed[k]);
+            });
+          } catch(err) {
+            consoleEl.className = 'console-box console-error';
+            consoleEl.textContent = 'Invalid JSON body syntax. Cannot build form-data.';
+            return;
+          }
+          options.body = formData;
+          // Note: fetch will automatically calculate the multipart/form-data boundary, do NOT set Content-Type header.
+        } else {
+          // Send as application/json
+          const bodyVal = document.getElementById('request-body').value;
+          try {
+            JSON.parse(bodyVal); // syntax check
+          } catch(err) {
+            consoleEl.className = 'console-box console-error';
+            consoleEl.textContent = 'Invalid JSON body syntax.';
+            return;
+          }
+          options.headers['Content-Type'] = 'application/json';
+          options.body = bodyVal;
+        }
+      }
+
+      // Execute request
+      try {
+        const response = await fetch(finalUrl, options);
+        const data = await response.json();
+
+        // Display status
+        statusBadge.textContent = `STATUS: ${response.status} ${response.statusText}`;
+        statusBadge.style.display = 'inline-block';
+        if (response.ok) {
+          statusBadge.className = 'response-status status-success';
+        } else {
+          statusBadge.className = 'response-status status-error';
+        }
+
+        // Output JSON
+        consoleEl.textContent = JSON.stringify(data, null, 2);
+
+        // Auto-save token in field if signin or signup-org succeeds
+        if (response.ok && data.token && (selectedKey === 'signin' || selectedKey === 'signup-org')) {
+          document.getElementById('jwt-token').value = data.token;
+          saveToken(data.token);
+          updateCurlPreview();
+        }
+      } catch (err) {
+        statusBadge.textContent = 'ERROR';
+        statusBadge.style.display = 'inline-block';
+        statusBadge.className = 'response-status status-error';
+        consoleEl.className = 'console-box console-error';
+        consoleEl.textContent = `Network / Execution Error:\n${err.message}`;
+      }
+    }
+
+    function copyCurl() {
+      const code = document.getElementById('curl-code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const copyBtn = document.querySelector('.btn-copy');
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+        }, 1500);
+      });
+    }
+  </script>
+</body>
+</html>
