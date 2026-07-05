@@ -105,6 +105,7 @@ const sendVerificationEmail = async (email, name, token) => {
       return data;
     } catch (error) {
       console.error('Error sending verification email via Resend:', error.message);
+      console.log('Attempting Nodemailer SMTP fallback...');
     }
   }
 
@@ -168,6 +169,7 @@ const sendActivationEmail = async (email, name, employeeId, tempPassword) => {
       return data;
     } catch (error) {
       console.error('Error sending activation email via Resend:', error.message);
+      console.log('Attempting Nodemailer SMTP fallback...');
     }
   }
 
