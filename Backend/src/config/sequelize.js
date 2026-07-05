@@ -1,5 +1,9 @@
 const { Sequelize, Model, DataTypes, Op } = require('sequelize');
 
+const originalFindOne = Model.findOne;
+const originalFindAll = Model.findAll;
+const originalCount = Model.count;
+
 const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URI;
 if (!databaseUrl) {
   console.error('DATABASE_URL is not set in env variables!');
@@ -181,11 +185,11 @@ class MongooseQueryWrapper {
 
     // Run query
     if (this.type === 'findOne' || this.type === 'findById') {
-      return await this.model.findOne(sequelizeOptions);
+      return await originalFindOne.call(this.model, sequelizeOptions);
     } else if (this.type === 'countDocuments') {
-      return await this.model.count(sequelizeOptions);
+      return await originalCount.call(this.model, sequelizeOptions);
     } else {
-      return await this.model.findAll(sequelizeOptions);
+      return await originalFindAll.call(this.model, sequelizeOptions);
     }
   }
 
@@ -253,7 +257,7 @@ class MongooseCompatibleModel extends Model {
   }
 
   static async findByIdAndUpdate(id, update, options = {}) {
-    const instance = await this.findOne({ _id: id });
+    const instance = await originalFindOne.call(this, { where: { _id: id } });
     if (!instance) return null;
     
     const actualUpdate = update.$set || update;
@@ -264,7 +268,7 @@ class MongooseCompatibleModel extends Model {
   }
 
   static async findByIdAndDelete(id) {
-    const instance = await this.findOne({ _id: id });
+    const instance = await originalFindOne.call(this, { where: { _id: id } });
     if (!instance) return null;
     await instance.destroy();
     return instance;
