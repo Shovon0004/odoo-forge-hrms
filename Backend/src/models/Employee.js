@@ -1,133 +1,139 @@
-const mongoose = require('mongoose');
+const { MongooseCompatibleModel, DataTypes, sequelize } = require('../config/sequelize');
 const bcrypt = require('bcryptjs');
 
-const EmployeeSchema = new mongoose.Schema({
+class Employee extends MongooseCompatibleModel {
+  async matchPassword(enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password_hash);
+  }
+}
+
+Employee.init({
+  _id: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+    defaultValue: () => require('crypto').randomBytes(12).toString('hex')
+  },
   employee_id: {
-    type: String,
-    required: [true, 'Employee ID is required'],
-    unique: true,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
   },
   name: {
-    type: String,
-    required: [true, 'Name is required'],
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    trim: true,
-    lowercase: true
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
   },
   mobile: {
-    type: String,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: true
   },
   company_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Organization',
-    required: [true, 'Company reference is required']
+    type: DataTypes.STRING,
+    allowNull: false,
+    get() {
+      return this.company_assoc !== undefined ? this.company_assoc : this.getDataValue('company_id');
+    }
   },
   department: {
-    type: String,
-    trim: true,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   manager_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Employee',
-    default: null
+    type: DataTypes.STRING,
+    allowNull: true,
+    get() {
+      return this.manager_assoc !== undefined ? this.manager_assoc : this.getDataValue('manager_id');
+    }
   },
   location: {
-    type: String,
-    trim: true,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   status: {
-    type: String,
-    enum: ['Present', 'Absent', 'On Leave'],
-    default: 'Absent'
+    type: DataTypes.STRING,
+    defaultValue: 'Absent'
   },
   password_hash: {
-    type: String,
-    required: [true, 'Password is required']
+    type: DataTypes.STRING,
+    allowNull: false
   },
   role: {
-    type: String,
-    enum: ['Admin', 'HR', 'Employee'],
-    required: [true, 'Role is required']
+    type: DataTypes.STRING,
+    allowNull: false
   },
   isVerified: {
-    type: Boolean,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   isActivated: {
-    type: Boolean,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   verificationToken: {
-    type: String,
-    default: null
+    type: DataTypes.STRING,
+    allowNull: true
   },
   verificationTokenExpires: {
-    type: Date,
-    default: null
+    type: DataTypes.DATE,
+    allowNull: true
   },
   profilePicture: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   date_of_birth: {
-    type: Date,
-    default: null
+    type: DataTypes.DATE,
+    allowNull: true
   },
   nationality: {
-    type: String,
-    trim: true,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   marital_status: {
-    type: String,
-    enum: ['Single', 'Married', 'Divorced', 'Widowed', ''],
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   gender: {
-    type: String,
-    enum: ['Male', 'Female', 'Other', ''],
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   resume: {
-    about: { type: String, default: '' },
-    what_i_love_about_my_job: { type: String, default: '' },
-    interests_and_hobbies: { type: String, default: '' }
+    type: DataTypes.JSONB,
+    defaultValue: {
+      about: '',
+      what_i_love_about_my_job: '',
+      interests_and_hobbies: ''
+    }
   },
-  skills: [{
-    type: String,
-    trim: true
-  }],
-  certifications: [{
-    type: String,
-    trim: true
-  }],
+  skills: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: []
+  },
+  certifications: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: []
+  },
   createdAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  }
+}, {
+  sequelize,
+  modelName: 'Employee',
+  tableName: 'employees',
+  timestamps: false,
+  hooks: {
+    beforeSave: async (employee) => {
+      if (employee.changed('password_hash')) {
+        const salt = await bcrypt.genSalt(10);
+        employee.password_hash = await bcrypt.hash(employee.password_hash, salt);
+      }
+    }
   }
 });
 
-// Pre-save hook to encrypt password
-EmployeeSchema.pre('save', async function() {
-  if (!this.isModified('password_hash')) {
-    return;
-  }
-  const salt = await bcrypt.genSalt(10);
-  this.password_hash = await bcrypt.hash(this.password_hash, salt);
-});
-
-// Method to compare passwords
-EmployeeSchema.methods.matchPassword = async function(enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password_hash);
-};
-
-module.exports = mongoose.model('Employee', EmployeeSchema);
+module.exports = Employee;

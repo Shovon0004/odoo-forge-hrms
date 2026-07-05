@@ -1,24 +1,35 @@
-const mongoose = require('mongoose');
+const { MongooseCompatibleModel, DataTypes, sequelize } = require('../config/sequelize');
 
-const OrganizationSchema = new mongoose.Schema({
+class Organization extends MongooseCompatibleModel {}
+
+Organization.init({
+  _id: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+    defaultValue: () => require('crypto').randomBytes(12).toString('hex')
+  },
   name: {
-    type: String,
-    required: [true, 'Organization name is required'],
-    unique: true,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
   },
   logo: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   phone: {
-    type: String,
-    trim: true
+    type: DataTypes.STRING,
+    allowNull: true
   },
   createdAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
+}, {
+  sequelize,
+  modelName: 'Organization',
+  tableName: 'organizations',
+  timestamps: false
 });
 
-module.exports = mongoose.model('Organization', OrganizationSchema);
+module.exports = Organization;

@@ -1,24 +1,43 @@
-const mongoose = require('mongoose');
+const { MongooseCompatibleModel, DataTypes, sequelize } = require('../config/sequelize');
 
-const TimeOffAllocationSchema = new mongoose.Schema({
+class TimeOffAllocation extends MongooseCompatibleModel {}
+
+TimeOffAllocation.init({
+  _id: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+    defaultValue: () => require('crypto').randomBytes(12).toString('hex')
+  },
   employee_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Employee',
-    required: true,
-    unique: true
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    get() {
+      return this.employee_assoc !== undefined ? this.employee_assoc : this.getDataValue('employee_id');
+    }
   },
   paid_time_off_available: {
-    type: Number,
-    default: 24
+    type: DataTypes.INTEGER,
+    defaultValue: 24
   },
   sick_time_off_available: {
-    type: Number,
-    default: 7
+    type: DataTypes.INTEGER,
+    defaultValue: 7
   },
   updatedAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  }
+}, {
+  sequelize,
+  modelName: 'TimeOffAllocation',
+  tableName: 'time_off_allocations',
+  timestamps: false,
+  hooks: {
+    beforeSave: (allocation) => {
+      allocation.updatedAt = new Date();
+    }
   }
 });
 
-module.exports = mongoose.model('TimeOffAllocation', TimeOffAllocationSchema);
+module.exports = TimeOffAllocation;

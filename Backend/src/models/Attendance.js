@@ -1,34 +1,52 @@
-const mongoose = require('mongoose');
+const { MongooseCompatibleModel, DataTypes, sequelize } = require('../config/sequelize');
 
-const AttendanceSchema = new mongoose.Schema({
+class Attendance extends MongooseCompatibleModel {}
+
+Attendance.init({
+  _id: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+    defaultValue: () => require('crypto').randomBytes(12).toString('hex')
+  },
   employee_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Employee',
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false,
+    get() {
+      return this.employee_assoc !== undefined ? this.employee_assoc : this.getDataValue('employee_id');
+    }
   },
   date: {
-    type: String, // format YYYY-MM-DD
-    required: true
+    type: DataTypes.STRING, // format YYYY-MM-DD
+    allowNull: false
   },
   check_in: {
-    type: Date,
-    required: true
+    type: DataTypes.DATE,
+    allowNull: false
   },
   check_out: {
-    type: Date,
-    default: null
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: null
   },
   work_hours: {
-    type: Number,
-    default: 0
+    type: DataTypes.FLOAT,
+    defaultValue: 0
   },
   extra_hours: {
-    type: Number,
-    default: 0
+    type: DataTypes.FLOAT,
+    defaultValue: 0
   }
+}, {
+  sequelize,
+  modelName: 'Attendance',
+  tableName: 'attendances',
+  timestamps: false,
+  indexes: [
+    {
+      unique: true,
+      fields: ['employee_id', 'date']
+    }
+  ]
 });
 
-// Ensure a single attendance record per employee per date
-AttendanceSchema.index({ employee_id: 1, date: 1 }, { unique: true });
-
-module.exports = mongoose.model('Attendance', AttendanceSchema);
+module.exports = Attendance;

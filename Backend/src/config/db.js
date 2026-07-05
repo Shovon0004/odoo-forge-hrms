@@ -1,26 +1,33 @@
-const mongoose = require('mongoose');
+const { sequelize } = require('./sequelize');
+
+// Import all models to ensure they are registered with Sequelize
+const Employee = require('../models/Employee');
+const Organization = require('../models/Organization');
+const Attendance = require('../models/Attendance');
+const SalarySettings = require('../models/SalarySettings');
+const TimeOffAllocation = require('../models/TimeOffAllocation');
+const TimeOffRequest = require('../models/TimeOffRequest');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.warn(`[DB Connection] Remote MONGO_URI connection failed: ${error.message}`);
+    // Set up associations centrally to avoid circular dependency issues
+    Employee.belongsTo(Organization, { foreignKey: 'company_id', as: 'company_assoc' });
+    Employee.belongsTo(Employee, { foreignKey: 'manager_id', as: 'manager_assoc' });
     
-    const fallbackUri = process.env.MONGO_URI_LOCAL;
-    if (!fallbackUri) {
-      console.error('Database connection error: Remote MONGO_URI failed and MONGO_URI_LOCAL is not defined in env.');
-      process.exit(1);
-    }
+    Attendance.belongsTo(Employee, { foreignKey: 'employee_id', as: 'employee_assoc' });
+    SalarySettings.belongsTo(Employee, { foreignKey: 'employee_id', as: 'employee_assoc' });
+    TimeOffAllocation.belongsTo(Employee, { foreignKey: 'employee_id', as: 'employee_assoc' });
+    TimeOffRequest.belongsTo(Employee, { foreignKey: 'employee_id', as: 'employee_assoc' });
 
-    console.warn(`[DB Connection] Attempting fallback to local MongoDB...`);
-    try {
-      const conn = await mongoose.connect(fallbackUri);
-      console.log(`MongoDB Connected (Local Fallback): ${conn.connection.host}`);
-    } catch (fallbackError) {
-      console.error(`Database connection error (local fallback also failed): ${fallbackError.message}`);
-      process.exit(1);
-    }
+    await sequelize.authenticate();
+    console.log('PostgreSQL Connected via Sequelize successfully.');
+
+    // Automatically sync models to database (creates tables if they don't exist, alerts schema dynamically)
+    await sequelize.sync({ alter: true });
+    console.log('PostgreSQL DB schemas synchronized successfully.');
+  } catch (error) {
+    console.error(`PostgreSQL Connection/Sync Error: ${error.message}`);
+    process.exit(1);
   }
 };
 

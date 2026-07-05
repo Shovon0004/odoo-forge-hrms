@@ -1,49 +1,61 @@
-const mongoose = require('mongoose');
+const { MongooseCompatibleModel, DataTypes, sequelize } = require('../config/sequelize');
 
-const TimeOffRequestSchema = new mongoose.Schema({
+class TimeOffRequest extends MongooseCompatibleModel {}
+
+TimeOffRequest.init({
+  _id: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+    defaultValue: () => require('crypto').randomBytes(12).toString('hex')
+  },
   employee_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Employee',
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false,
+    get() {
+      return this.employee_assoc !== undefined ? this.employee_assoc : this.getDataValue('employee_id');
+    }
   },
   time_off_type: {
-    type: String,
-    enum: ['Paid Time off', 'Sick Leave', 'Unpaid Leaves'],
-    required: [true, 'Time off type is required']
+    type: DataTypes.STRING,
+    allowNull: false
   },
   start_date: {
-    type: Date,
-    required: [true, 'Start date is required']
+    type: DataTypes.DATE,
+    allowNull: false
   },
   end_date: {
-    type: Date,
-    required: [true, 'End date is required']
+    type: DataTypes.DATE,
+    allowNull: false
   },
   allocation_days: {
-    type: Number,
-    required: true
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   remarks: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   attachment_url: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   status: {
-    type: String,
-    enum: ['Pending', 'Approved', 'Rejected'],
-    default: 'Pending'
+    type: DataTypes.STRING,
+    defaultValue: 'Pending'
   },
   comments: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   createdAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
+}, {
+  sequelize,
+  modelName: 'TimeOffRequest',
+  tableName: 'time_off_requests',
+  timestamps: false
 });
 
-module.exports = mongoose.model('TimeOffRequest', TimeOffRequestSchema);
+module.exports = TimeOffRequest;
