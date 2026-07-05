@@ -28,5 +28,6 @@ router.get('/verify/:token', verifyEmail);
 
 // Change Password (requires protection)
 router.post('/change-password', protect, changePassword);
+router.put('/change-password', protect, changePassword);
 
 module.exports = router;

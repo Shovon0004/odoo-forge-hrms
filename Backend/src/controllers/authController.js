@@ -263,7 +263,8 @@ const verifyEmail = async (req, res) => {
  */
 const changePassword = async (req, res) => {
   try {
-    const { old_password, new_password } = req.body;
+    const old_password = req.body.old_password || req.body.oldPassword;
+    const new_password = req.body.new_password || req.body.newPassword;
 
     if (!old_password || !new_password) {
       return res.status(400).json({ success: false, error: 'Please provide old and new password' });
