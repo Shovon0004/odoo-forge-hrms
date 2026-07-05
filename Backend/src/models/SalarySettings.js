@@ -13,7 +13,8 @@ SalarySettings.init({
     allowNull: false,
     unique: true,
     get() {
-      return this.employee_assoc !== undefined ? this.employee_assoc : this.getDataValue('employee_id');
+      const loaded = this.dataValues.employee_assoc;
+      return loaded !== undefined ? loaded : this.getDataValue('employee_id');
     }
   },
   monthly_wage: {

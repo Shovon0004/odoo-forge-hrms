@@ -35,7 +35,8 @@ Employee.init({
     type: DataTypes.STRING,
     allowNull: false,
     get() {
-      return this.company_assoc !== undefined ? this.company_assoc : this.getDataValue('company_id');
+      const loaded = this.dataValues.company_assoc;
+      return loaded !== undefined ? loaded : this.getDataValue('company_id');
     }
   },
   department: {
@@ -46,7 +47,8 @@ Employee.init({
     type: DataTypes.STRING,
     allowNull: true,
     get() {
-      return this.manager_assoc !== undefined ? this.manager_assoc : this.getDataValue('manager_id');
+      const loaded = this.dataValues.manager_assoc;
+      return loaded !== undefined ? loaded : this.getDataValue('manager_id');
     }
   },
   location: {

@@ -203,6 +203,13 @@ class MongooseCompatibleModel extends Model {
     return this.isNewRecord;
   }
 
+  save(options) {
+    if (this.skills) this.changed('skills', true);
+    if (this.certifications) this.changed('certifications', true);
+    if (this.resume) this.changed('resume', true);
+    return super.save(options);
+  }
+
   toJSON() {
     const values = { ...this.get() };
     
