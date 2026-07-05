@@ -48,9 +48,17 @@ const generateEmployeeId = async (companyName, employeeName, companyId) => {
     createdAt: { $gte: startOfYear, $lte: endOfYear }
   });
 
-  const serial = String(count + 1).padStart(4, '0');
+  let serialNum = count + 1;
+  let employee_id = `${compInitials}${nameInitials}${currentYear}${String(serialNum).padStart(4, '0')}`;
 
-  return `${compInitials}${nameInitials}${currentYear}${serial}`;
+  // Ensure global uniqueness by checking the database and incrementing the serial number if a collision occurs
+  while (await Employee.findOne({ employee_id })) {
+    serialNum++;
+    employee_id = `${compInitials}${nameInitials}${currentYear}${String(serialNum).padStart(4, '0')}`;
+  }
+
+  return employee_id;
 };
 
 module.exports = { generateEmployeeId };
+
