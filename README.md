@@ -195,8 +195,8 @@ Use the following mock credentials to log in and test role features:
 
 | User Role | Login Email / ID | Password | Purpose / Features |
 |---|---|---|---|
-| **Admin / HR Officer** | `admin@hackathon.com` | `Password@123` | Can onboard employees, approve/reject leaves, modify salary structures, and view directory attendance |
-| **Employee** | `johndoe@hackathon.com` | `Password@123` | Can check-in/out, apply for leaves, view salary breakdown, and update profile skills/avatar |
+| **Admin / HR Officer** | `OISHHA20260001` | `@Odoo123456` | Can onboard employees, approve/reject leaves, modify salary structures, and view directory attendance |
+| **Employee** | `OIRARO20260002` | `Tmp2f2fc3!` | Can check-in/out, apply for leaves, view salary breakdown, and update profile skills/avatar |
 
 ---
 
