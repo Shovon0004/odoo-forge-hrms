@@ -1,6 +1,24 @@
 # 🏢 Odoo Forge HRMS
 
-Odoo Forge HRMS is a state-of-the-art, premium Human Resource Management System (HRMS) designed to digitize, automate, and streamline core organizational workflows. Built with a modern **Next.js** frontend and an **Express/Node.js** backend, the system transitioned from MongoDB to a highly performant **PostgreSQL (Neon DB)** backend using a custom-engineered Mongoose compatibility translation layer built on top of **Sequelize**.
+```text
+    ┌────────────────────────┐        ┌────────────────────────┐
+    │     Next.js Client     │ ──────>│   Express API Server   │
+    │     (Port 3000)        │ <──────│   (Port 5000)          │
+    └────────────────────────┘        └───────────┬────────────┘
+                                                  │
+                                                  ▼
+                                      ┌────────────────────────┐
+                                      │     Sequelize ORM      │
+                                      └───────────┬────────────┘
+                                                  │ (SSL Connect)
+                                                  ▼
+                                      ┌────────────────────────┐
+                                      │   Neon PostgreSQL DB   │
+                                      │   (Serverless Cloud)   │
+                                      └────────────────────────┘
+```
+
+Odoo Forge HRMS is a state-of-the-art, premium Human Resource Management System (HRMS) designed to digitize, automate, and streamline core organizational workflows. Built with a modern **Next.js** frontend and a high-performance **Express/Node.js** backend, the system leverages **PostgreSQL (hosted on Neon DB)** and **Sequelize ORM** for its relational database layer.
 
 The system enables automated employee onboarding, dynamic salary calculations, automatic attendance monitoring (with check-in, check-out, and overtime calculations), and a robust multi-role approval workflow for leaves and time-off requests.
 
@@ -16,42 +34,56 @@ The system enables automated employee onboarding, dynamic salary calculations, a
 * **HTTP Client:** [Axios](https://axios-http.com/)
 
 ### Backend
-*   [Node.js](https://nodejs.org/) & [Express.js](https://expressjs.com/)
-*   [MongoDB](https://www.mongodb.com/) & [Mongoose](https://mongoosejs.com/)
-*   [JSON Web Tokens (JWT)](https://jwt.io/) & [BcryptJS](https://www.npmjs.com/package/bcryptjs) (Authentication)
-*   [Multer](https://www.npmjs.com/package/multer) (File Uploads)
+* **Runtime:** [Node.js](https://nodejs.org/) & [Express.js](https://expressjs.com/)
+* **Database & ORM:** PostgreSQL hosted on [Neon](https://neon.tech/) and managed through [Sequelize ORM](https://sequelize.org/)
+* **Auth & Security:** [JSON Web Tokens (JWT)](https://jwt.io/) & [BcryptJS](https://www.npmjs.com/package/bcryptjs)
+* **Email Delivery:** [Resend API](https://resend.com/) with automatic fallback to **Nodemailer SMTP**
+* **File Processing:** [Multer](https://github.com/expressjs/multer) (for file buffers and local processing)
 
-## Project Structure
+---
 
-This repository is organized as a monorepo containing both the frontend and backend applications:
+## 🏗️ Project Architecture
 
-*   `/frontend`: Contains the Next.js application.
-*   `/Backend`: Contains the Node.js/Express API server.
+```mermaid
+graph TD
+    Client[Next.js Client app] -->|HTTPS Requests| ExpressAPI[Express.js Server]
+    
+    subgraph Express Backend
+        ExpressAPI -->|Router / Middleware| AuthMiddleware[JWT Auth Middleware]
+        AuthMiddleware --> Controllers[Route Controllers]
+        Controllers --> Models[Sequelize Database Models]
+        Models -->|ORM Operations| Sequelize[Sequelize ORM]
+    end
 
-## Getting Started
+    Sequelize -->|SSL Connection| NeonDB[(Neon Serverless PostgreSQL)]
+    Controllers -->|Email Dispatches| Mailer[Mailer: Resend / SMTP Fallback]
+    Mailer -->|Outbox APIs| ResendServer[Resend HTTP API / SMTP Server]
+```
 
-### Prerequisites
-*   Node.js (v18+ recommended)
-*   npm or yarn
+### Monorepo Structure
+```text
+  OdooXadamas/
+  ├── frontend/                 # Client Codebase (Next.js)
+  │   ├── app/                  # Layouts, Auth views, Employee Dashboards
+  │   ├── components/           # Reusable UI widgets & Forms
+  │   └── public/               # Default static assets and logos
+  │
+  ├── Backend/                  # API Server Codebase (Node/Express)
+  │   ├── src/
+  │   │   ├── config/           # Database configurations (db.js, sequelize.js)
+  │   │   ├── controllers/      # Route controllers (Auth, Employees, Attendance)
+  │   │   ├── models/           # Sequelize model entities (Employee, Org, TimeOff)
+  │   │   ├── middlewares/      # Security, JWT validations, Multer configs
+  │   │   └── utils/            # Mail dispatches, unique ID generator
+  │   │
+  │   ├── public/               # HTML documentation & Tester client
+  │   └── scratch/              # Database maintenance scripts
+  │
+  └── README.md                 # Primary system manual
+```
 
-### Running the Backend
+---
 
-<<<<<<< HEAD
-1.  Navigate to the backend directory:
-    ```bash
-    cd Backend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Set up environment variables (create a `.env` file with necessary variables like `PORT`, `MONGO_URI`, `JWT_SECRET`).
-4.  Start the development server:
-    ```bash
-    npm run dev
-    ```
-    The backend typically runs on `http://localhost:5000` (or as configured in `.env`).
-=======
 ## 🗄️ Database Architecture
 
 The application uses **PostgreSQL** hosted on **Neon DB** as its relational database. The schema structure consists of 6 core tables:
@@ -141,30 +173,18 @@ Configures payroll, deductions, and allowances.
 
 ## ⚙️ Special Application Logics & Architecture
 
-To achieve a seamless database migration from MongoDB to PostgreSQL without rewriting the controller layer, several custom architectural elements were developed:
+Several custom architectural elements were developed to ensure the system is robust and secure:
 
-### 1. Mongoose-to-Sequelize Compatibility Layer (`sequelize.js`)
-We engineered `MongooseCompatibleModel` and `MongooseQueryWrapper` which intercepts chainable queries:
-```javascript
-// This Mongoose query is automatically parsed and executed as raw Sequelize code
-const employee = await Employee.findOne({ email: email.toLowerCase() })
-  .populate('company_id', 'name logo')
-  .select('-password_hash');
-```
-* Translates operators (`$or`, `$and`, `$gte`, `$lte`, `$in`) to Sequelize `Op` structures.
-* Emulates MongoDB hooks (`beforeSave` hashing).
-* Provides dynamic `populate` by mapping it to Sequelize `include` associations.
-
-### 2. Globally Unique Employee ID Generation (`idGenerator.js`)
+### 1. Globally Unique Employee ID Generation (`idGenerator.js`)
 Employee ID generation follows a strict corporate format:
 `[Company Initials (2 letters)][Name Initials (2-4 letters)][Year of Joining][4-digit Serial Number]`
 * **Example:** `OISHHA20260002` (Company: **O**doo **I**ndia, Name: **Sh**ovon **Ha**lder, Year: **2026**, Serial: **0002**).
 * **Collision Protection Loop:** To prevent global collision errors across organizations, the generator queries the database in a loop, checking the availability of the ID and incrementing the serial count automatically if a conflict is detected.
 
-### 3. In-place Mutation Tracking
+### 2. In-place Mutation Tracking
 Sequelize does not automatically detect array updates (such as `.push()` on skills/certifications arrays) or JSON additions because the object references do not change. We overrode the `.save()` method to automatically call `this.changed(key, true)` for array and JSONB columns, ensuring changes are always written to PostgreSQL.
 
-### 4. Dual-Protocol Mailer with Failover (`mailer.js`)
+### 3. Dual-Protocol Mailer with Failover (`mailer.js`)
 Because hosting platforms (like Render Free Tier) block standard SMTP traffic on ports 25, 465, and 587, we configured the mailer to dispatch verification and onboarding emails via the **Resend HTTP API**. In case the Resend account limit or validation errors trigger a failure, it automatically falls back to standard **Nodemailer SMTP** as a safety net.
 
 ---
@@ -330,5 +350,3 @@ If you get `value too long for type character varying(255)` errors on profile pi
 
 #### 3. Mail Client Blocks on Render
 When deploying the Backend server to Render, outbound traffic on standard SMTP ports (25, 465, 587) is blocked on Free tier accounts. **Always** specify `RESEND_API_KEY` on Render to route email requests through the HTTP API instead of raw SMTP ports.
->>>>>>> 8812501 (Expand local setup guidelines and environment variables instructions in README.md)
-
