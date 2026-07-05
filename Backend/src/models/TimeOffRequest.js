@@ -33,11 +33,11 @@ TimeOffRequest.init({
     allowNull: false
   },
   remarks: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     defaultValue: ''
   },
   attachment_url: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     defaultValue: ''
   },
   status: {
@@ -45,7 +45,7 @@ TimeOffRequest.init({
     defaultValue: 'Pending'
   },
   comments: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     defaultValue: ''
   },
   createdAt: {

@@ -14,7 +14,7 @@ Organization.init({
     unique: true
   },
   logo: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     defaultValue: ''
   },
   phone: {

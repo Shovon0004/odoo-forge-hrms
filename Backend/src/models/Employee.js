@@ -84,7 +84,7 @@ Employee.init({
     allowNull: true
   },
   profilePicture: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     defaultValue: ''
   },
   date_of_birth: {
@@ -112,11 +112,11 @@ Employee.init({
     }
   },
   skills: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
+    type: DataTypes.ARRAY(DataTypes.TEXT),
     defaultValue: []
   },
   certifications: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
+    type: DataTypes.ARRAY(DataTypes.TEXT),
     defaultValue: []
   },
   createdAt: {
