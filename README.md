@@ -23,7 +23,7 @@ Odoo Forge HRMS is a comprehensive Human Resource Management System designed to 
 
 ### Backend
 *   [Node.js](https://nodejs.org/) & [Express.js](https://expressjs.com/)
-*   [MongoDB](https://www.mongodb.com/) & [Mongoose](https://mongoosejs.com/)
+*  POstgress
 *   [JSON Web Tokens (JWT)](https://jwt.io/) & [BcryptJS](https://www.npmjs.com/package/bcryptjs) (Authentication)
 *   [Multer](https://www.npmjs.com/package/multer) (File Uploads)
 
